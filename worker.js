@@ -73,52 +73,107 @@ function translationFontSize(text) {
   return 13;
 }
 
+function wrapText(text, maxLength = 45) {
+  const words = text.split(" ");
+  const lines = [];
+  let line = "";
+
+  for (const word of words) {
+    const test = line ? `${line} ${word}` : word;
+
+    if (test.length > maxLength && line) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = test;
+    }
+  }
+
+  if (line) {
+    lines.push(line);
+  }
+
+  return lines;
+}
+
 function createSVG({ quote, translation, source }) {
-  return `<svg width="700" height="220"
-    viewBox="0 0 700 220"
-    xmlns="http://www.w3.org/2000/svg">
+  const lines = wrapText(quote);
 
-  <rect width="700"
-        height="220"
-        rx="16"
-        fill="#e0e4eaff"/>
+  const quoteText = lines
+    .map((line, index) => `
+      <tspan
+        x="350"
+        dy="${index === 0 ? 0 : 36}"
+      >
+        ${escapeXML(line)}
+      </tspan>
+    `)
+    .join("");
 
-  <text x="350"
-        y="42"
-        text-anchor="middle"
-        fill="#8B949E"
-        font-family="Arial, Helvetica, sans-serif"
-        font-size="13"
-        font-weight="700"
-        letter-spacing="3">
+  const quoteY = lines.length === 1 ? 94 : 78;
+  const translationY = lines.length === 1 ? 136 : 144;
+  const sourceY = lines.length === 1 ? 173 : 181;
+
+  return `
+<svg width="700"
+     height="220"
+     viewBox="0 0 700 220"
+     xmlns="http://www.w3.org/2000/svg">
+
+  <rect
+    width="700"
+    height="220"
+    rx="16"
+    fill="#e0e4ea"
+  />
+
+  <text
+    x="350"
+    y="42"
+    text-anchor="middle"
+    fill="#8B949E"
+    font-family="Arial, Helvetica, sans-serif"
+    font-size="13"
+    font-weight="700"
+    letter-spacing="3"
+  >
     TESTING QUOTE OF THE DAY
   </text>
 
-  <text x="350"
-        y="94"
-        text-anchor="middle"
-        fill="#45586cff"
-        font-family="Georgia, 'Times New Roman', serif"
-        font-size="${fontSize(quote)}"
-        font-weight="600">
-    “${escapeXML(quote)}”
+  <!-- English quote -->
+  <text
+    x="350"
+    y="${quoteY}"
+    text-anchor="middle"
+    fill="#45586c"
+    font-family="Georgia, 'Times New Roman', serif"
+    font-size="${fontSize(quote)}"
+    font-weight="600"
+  >
+    ${quoteText}
   </text>
 
-  <text x="350"
-        y="128"
-        text-anchor="middle"
-        fill="#8B949E"
-        font-family="Arial, 'Noto Sans TC', sans-serif"
-        font-size="${translationFontSize(translation)}">
+  <!-- Chinese translation -->
+  <text
+    x="350"
+    y="${translationY}"
+    text-anchor="middle"
+    fill="#8B949E"
+    font-family="Arial, 'Noto Sans TC', sans-serif"
+    font-size="${translationFontSize(translation)}"
+  >
     ${escapeXML(translation)}
   </text>
 
-  <text x="350"
-        y="165"
-        text-anchor="middle"
-        fill="#8B949E"
-        font-family="Arial, Helvetica, sans-serif"
-        font-size="14">
+  <!-- Source -->
+  <text
+    x="350"
+    y="${sourceY}"
+    text-anchor="middle"
+    fill="#8B949E"
+    font-family="Arial, Helvetica, sans-serif"
+    font-size="14"
+  >
     — ${escapeXML(source)}
   </text>
 
